@@ -1,0 +1,132 @@
+# order_food Global Configuration
+
+# jwt configuration
+jwt:
+  signing-key: qmPlus
+  expires-time: 365d
+  buffer-time: 1d
+  issuer: qmPlus
+# zap logger configuration
+zap:
+  level: debug
+  format: console
+  prefix: "[xxx] "
+  director: log
+  show-line: true
+  encode-level: LowercaseColorLevelEncoder
+  stacktrace-key: stacktrace
+  log-in-console: true
+
+# redis configuration
+redis:
+  db: 0
+  addr: 118.31.124.97:6379
+  password: "2023qwe"
+
+mongodb:
+  uri: mongodb://ququmandev:rXie4kYIrGb#@dds-bp1cbd6ebff4b8441789-pub.mongodb.rds.aliyuncs.com:3717,dds-bp1cbd6ebff4b8442273-pub.mongodb.rds.aliyuncs.com:3717/dev
+  db: dev
+
+apilog:
+  uri: mongodb://ququmandev:rXie4kYIrGb#@dds-bp1cbd6ebff4b8441789-pub.mongodb.rds.aliyuncs.com:3717,dds-bp1cbd6ebff4b8442273-pub.mongodb.rds.aliyuncs.com:3717/dev
+  db: dev
+  collection: jihai-apilog
+  enabled: true
+
+# email configuration
+email:
+  to: xxx@qq.com
+  port: 465
+  from: xxx@163.com
+  host: smtp.163.com
+  is-ssl: true
+  secret: xxx
+  nickname: test
+
+# system configuration
+system:
+  env: public # Change to "develop" to skip authentication for development mode public
+  addr: 8081  # 自己修改 默认值
+  db-type: mysql
+  oss-type: qiniu # 控制oss选择走本地还是 七牛等其他仓 自行增加其他oss仓可以在 server/utils/upload/upload.go 中 NewOss函数配置
+  use-redis: true # 使用redis
+  use-multipoint: true
+  use-rabbitmq: true # 使用RabbitMQ
+  use-nodered: true # 使用nodered
+  use-wecom: true # 使用企业微信
+  use-miniprogram: true
+  use-mongo: false # 使用mongoDB
+  # IP限制次数 一个小时15000次
+  iplimit-count: 15000
+  #  IP限制一个小时
+  iplimit-time: 3600
+  #  路由全局前缀
+  router-prefix: "/api/xxx" # 默认前缀
+
+# captcha configuration
+captcha:
+  key-long: 6
+  img-width: 240
+  img-height: 80
+  open-captcha: 0 # 0代表一直开启，大于0代表限制次数
+  open-captcha-timeout: 3600 # open-captcha大于0时才生效
+
+# mysql connect configuration
+# 未初始化之前请勿手动修改数据库信息！！！如果一定要手动初始化请看（https://gin-vue-admin.com/docs/first_master）
+mysql:
+  path: "118.31.124.97"
+  port: "33306"
+  config: "charset=utf8&parseTime=true&loc=Local"
+  db-name: "seafood"
+  username: "dev_seafood"
+  password: "seafood!@#"
+  max-idle-conns: 10
+  max-open-conns: 100
+  log-mode: ""
+  log-zap: false
+
+db-list:
+  - disable: true # 是否禁用
+
+rabbitmq:
+  addr: amqp://ris:ris987@118.31.124.97:5672/%2fris
+
+# local configuration
+local:
+  path: uploads/file
+  store-path: uploads/file
+
+# qiniu configuration (请自行七牛申请对应的 公钥 私钥 bucket 和 域名地址)
+qiniu:
+  domain: "https://static.ris.ququ.im/"
+  zone: ZoneHuanan
+  bucket: "jihairis"
+  img-path: "images"
+  use-https: true
+  access-key: "2su4LYS3yZW7SyzyKTCja4ChHjxJUvOymOd14Rn8"
+  secret-key: "sAoVNu9UW8HLLg5fFC1pcLqhRu8hRMnlrgem2f8A"
+  use-cdn-domains: false
+
+nodered:
+  host: "http://118.31.124.97:1880"
+  token: ""
+
+noApilog:
+  apis: "/api/device/heartbeat,/api/queue/code/listMap,/api/nodered/table/list,/api/nodered/table/detail,/api/queue/code/listMap,/api/queue/code/list,/api/order/detail"
+
+etcd:
+  uri: "http://118.31.124.97"
+  port: ":12379"
+  lease: 5
+  env: "local"
+  servUri: "http://118.31.124.97"
+
+emqx:
+  #broker: "tcp://172.16.88.131:2883"
+  broker: "tcp://118.31.124.97:1883"
+  clientID: "emqx_order_local_3"
+  username: "jh_order_dev"
+  password: "jh123123"
+  cleanSession: true
+  keepAlive: 30
+  autoReconnect: true
