@@ -12,7 +12,7 @@ type ButtonRouter struct{}
 
 func (ButtonRouter) ButtonRouter(privateRouter *gin.RouterGroup, publicRouter *gin.RouterGroup) {
 
-	bApi := api.ButtonApi{}
+	bApi := api.BA
 	button := publicRouter.Group("button")
 
 	button.POST("/click", bApi.Click)

@@ -29,13 +29,14 @@ func Routers() *gin.Engine {
 	Router.Use(middleware.Cors()) // 直接放行全部跨域请求
 	docs.SwaggerInfo.BasePath = global.GVA_CONFIG.System.RouterPrefix
 	PublicGroup := Router.Group(global.GVA_CONFIG.System.RouterPrefix)
+	PublicGroup.Use(middleware.CustomRecovery())
 	PublicGroup.GET("/", func(ctx *gin.Context) {
 	})
 
 	Router.GET(global.GVA_CONFIG.System.RouterPrefix+"/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	PrivateGroup := Router.Group(global.GVA_CONFIG.System.RouterPrefix)
-	PrivateGroup.Use(middleware.JWTAuth()).Use(middleware.CasbinHandler())
+	PrivateGroup.Use(middleware.JWTAuth()).Use(middleware.CasbinHandler()).Use(middleware.CustomRecovery())
 
 	// 路由注册
 	router.RT.RouteInit(PrivateGroup, PublicGroup)

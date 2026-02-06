@@ -8,6 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var BA = ButtonApi{}
+
 type ButtonApi struct{}
 
 // Click 点击
@@ -37,5 +39,4 @@ func (*ButtonApi) Click(c *gin.Context) {
 		return
 	}
 	response.OkWithDetailed("成功", "", c)
-
 }

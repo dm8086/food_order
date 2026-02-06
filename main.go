@@ -17,3 +17,4 @@ func main() {
 	initialize.EmqxInit()
 	core.RunWindowsServer()
 }
+

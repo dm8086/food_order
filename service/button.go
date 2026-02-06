@@ -46,13 +46,13 @@ func (*ButtonService) Click(req request.ButtonServiceReq) error {
 		err = singleHandler(req, tableInfo, tableBusiness, businessLog)
 	case 13: // 买单服务取消
 		err = cancelHandler(req, tableInfo, tableBusiness, businessLog)
-	case 34: // 双击
+	case 34: // 双击 当前是锅底送达
 		err = doubleHandler(req, tableInfo, tableBusiness, businessLog)
 	default:
 		return errors.New("事件类型错误")
 	}
 
-	// 处理错误 之恶极返回
+	// 处理错误 直接返回
 	if err != nil {
 		return err
 	}
