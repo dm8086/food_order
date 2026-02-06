@@ -1,0 +1,10 @@
+.idea/.gitignore
+log/
+.idea/
+go.sum
+order_food
+order_food.exe
+
+docs/
+
+config.yaml
