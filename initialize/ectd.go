@@ -6,10 +6,29 @@ import (
 	"log"
 	"math/rand"
 	"order_food/global"
+	"sync"
 	"time"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
+
+var etcdCli *clientv3.Client
+var cliId string
+var smp sync.Map
+
+func EtcdInit() {
+	endpoints := []string{global.GVA_CONFIG.Etcd.Uri + global.GVA_CONFIG.Etcd.Port}
+	cli, err := clientv3.New(clientv3.Config{
+		Endpoints:   endpoints,
+		DialTimeout: 5 * time.Second,
+	})
+	if err != nil {
+		panic("etcd init err:" + err.Error())
+	}
+
+	etcdCli = cli
+
+}
 
 type ServiceRegister struct {
 	cli     *clientv3.Client
@@ -19,50 +38,28 @@ type ServiceRegister struct {
 }
 
 func PutKey(key, value string) error {
-	endpoints := []string{global.GVA_CONFIG.Etcd.Uri + global.GVA_CONFIG.Etcd.Port}
-	cli, err := clientv3.New(clientv3.Config{
-		Endpoints:   endpoints,
-		DialTimeout: 5 * time.Second,
-	})
-	if err != nil {
-		return err
-	}
 
-	_, err = cli.Put(context.Background(), key, value)
+	_, err := etcdCli.Put(context.Background(), key, value)
 
 	return err
 }
 
 func GetKey(key string) (string, error) {
-	endpoints := []string{global.GVA_CONFIG.Etcd.Uri + global.GVA_CONFIG.Etcd.Port}
-	cli, err := clientv3.New(clientv3.Config{
-		Endpoints:   endpoints,
-		DialTimeout: 5 * time.Second,
-	})
-	if err != nil {
-		return "", err
-	}
-	res, err := cli.Get(context.Background(), key)
+
+	res, err := etcdCli.Get(context.Background(), key)
 	value := ""
 	for _, v := range res.Kvs {
 		value = v.String()
 	}
 
-	return value, nil
+	return value, err
 
 }
 
 func (ServiceRegister) NewServiceRegister(endpoints []string, key, val string, lease int64) (*ServiceRegister, error) {
-	cli, err := clientv3.New(clientv3.Config{
-		Endpoints:   endpoints,
-		DialTimeout: 5 * time.Second,
-	})
-	if err != nil {
-		return nil, err
-	}
 
 	ser := &ServiceRegister{
-		cli: cli,
+		cli: etcdCli,
 		key: key,
 		val: val,
 	}
@@ -122,16 +119,9 @@ type ServiceDiscovery struct {
 }
 
 func (ServiceDiscovery) NewServiceDiscovery(endpoints []string, prefix string) (*ServiceDiscovery, error) {
-	cli, err := clientv3.New(clientv3.Config{
-		Endpoints:   endpoints,
-		DialTimeout: 5 * time.Second,
-	})
-	if err != nil {
-		return nil, err
-	}
 
 	sd := &ServiceDiscovery{
-		cli:    cli,
+		cli:    etcdCli,
 		prefix: prefix,
 		nodes:  make(map[string]string),
 	}
@@ -142,7 +132,12 @@ func (ServiceDiscovery) NewServiceDiscovery(endpoints []string, prefix string) (
 	}
 
 	// 监听服务变化
-	go sd.watchServices()
+	if prefix != "" {
+		if _, ok := smp.Load(prefix); !ok {
+			go sd.watchServices()
+			smp.Store(prefix, global.ServUuid)
+		}
+	}
 
 	return sd, nil
 }

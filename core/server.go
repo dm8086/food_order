@@ -48,7 +48,7 @@ func RunWindowsServer() {
 		// 生成实例id
 		caId := uid.String()
 		endpoints := []string{global.GVA_CONFIG.Etcd.Uri + global.GVA_CONFIG.Etcd.Port}
-		serviceKey := "/jhBase/orderServ/" + caId
+		serviceKey := "/jhBase/financeServ/" + caId
 
 		serviceVal := global.GVA_CONFIG.Etcd.ServUri + address
 
