@@ -56,7 +56,7 @@ type DispatchInfo struct {
 	AreaName       string           `json:"areaName"`
 	OrderId        string           `json:"orderId"`
 	SubOrderId     string           `json:"subOrderId"` // 子订单id
-	SubOrder       []sea.OrderBatch `json:"subOrder"`   // 子订单列表
+	SubOrder       []sea.FoodOrderBatch `json:"subOrder"`   // 子订单列表
 }
 
 type RespTableItem struct {
@@ -148,6 +148,7 @@ type TopScreenResp struct {
 	TableEvent string `json:"tableEvent"` // 买单还是服务  取消
 	ShopList   any    `json:"shopList"`   // ShopList  商品列表
 	ShopType   int    `json:"shopType"`   // ShopType  商品类型  买单 服务 锅底 加工类  饮料  1 2 3 4 5 @todo
+	EventType  int    `json:"eventType"`  // eventType  事件类型  买单 服务 取消
 	EventName  string `json:"eventName"`  // topScreenStatus
 	EventTime  string `json:"eventTime"`  // 事件时间
 	StoreId    string `json:"storeId"`    // 门店id

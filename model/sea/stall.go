@@ -42,7 +42,7 @@ type StallSkus struct {
 	BatchDishId int            `gorm:"column:batch_dish_id" json:"batchDishId"`
 	Status      int            `gorm:"column:status" json:"status"` // 未加工 1送出 2完成 3退单
 	DishName    string         `gorm:"column:dish_name" json:"dishName"`
-	Detail      OrderBatchDish `gorm:"foreignKey:batch_dish_id;references:id;" json:"detail"`
+	Detail      FoodOrderBatchDish `gorm:"foreignKey:batch_dish_id;references:id;" json:"detail"`
 }
 
 func (*StallSkus) TableName() string {

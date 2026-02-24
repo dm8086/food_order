@@ -17,8 +17,8 @@ var OrderS = OrderService{}
 type OrderService struct{}
 
 // OrderAdd  订单增加商品
-func (o *OrderService) OrderSub(req request.OrderSubReq) (*sea.Order, *sea.OrderBatch, error) {
-	info := sea.Order{}
+func (o *OrderService) OrderSub(req request.OrderSubReq) (*sea.FoodOrder, *sea.FoodOrderBatch, error) {
+	info := sea.FoodOrder{}
 
 	nowTime := time.Now()
 	_ = global.GVA_DB.Where("order_id = ?", req.OrderId).Preload("OrderBatchs.OrderBatchDishs").First(&info).Error
@@ -37,7 +37,7 @@ func (o *OrderService) OrderSub(req request.OrderSubReq) (*sea.Order, *sea.Order
 		}
 	}
 
-	subList := []sea.OrderBatchDish{}
+	subList := []sea.FoodOrderBatchDish{}
 	subIdMaps := map[int]bool{}
 	subids := []int{}
 	subNumMap := map[int]int{}
@@ -56,7 +56,7 @@ func (o *OrderService) OrderSub(req request.OrderSubReq) (*sea.Order, *sea.Order
 
 	_ = global.GVA_DB.Where("order_id = ? and id IN ?", req.OrderId, subids).Find(&subList).Error
 
-	orderBatch := sea.OrderBatch{}
+	orderBatch := sea.FoodOrderBatch{}
 	batchUuid, _ := uuid.NewV4()
 	bathId := batchUuid.String() //
 	// 退单的批次
@@ -78,12 +78,12 @@ func (o *OrderService) OrderSub(req request.OrderSubReq) (*sea.Order, *sea.Order
 	batchChangeMap := map[string]NumAmount{}
 
 	// orderBatch dish
-	subAddList := []sea.OrderBatchDish{}
+	subAddList := []sea.FoodOrderBatchDish{}
 	for k1, v1 := range subList {
 		subOrderBatch = append(subOrderBatch, v1.BatchId)
 		tmpNum := subNumMap[int(v1.ID)]
 		tmpAmount := v1.Price * tmpNum
-		subAddList = append(subAddList, sea.OrderBatchDish{
+		subAddList = append(subAddList, sea.FoodOrderBatchDish{
 			AddTime:   &nowTime,
 			OrderId:   v1.OrderId,
 			BatchId:   bathId,
@@ -121,7 +121,7 @@ func (o *OrderService) OrderSub(req request.OrderSubReq) (*sea.Order, *sea.Order
 	info.OrderAmount = info.OrderAmount - subAmount
 
 	// 需要修改的批次
-	subOriginBatch := []sea.OrderBatch{}
+	subOriginBatch := []sea.FoodOrderBatch{}
 	_ = global.GVA_DB.Where("order_id = ? and batch_id IN ?", req.OrderId, subOrderBatch).Find(&subOriginBatch).Error
 
 	for k2, v2 := range subOriginBatch {
@@ -209,11 +209,11 @@ func (o *OrderService) OrderSub(req request.OrderSubReq) (*sea.Order, *sea.Order
 }
 
 // OrderAdd  订单增加商品
-func (o *OrderService) OrderAdd(req request.OrderAddReq) (*sea.Order, *sea.OrderBatch, error) {
+func (o *OrderService) OrderAdd(req request.OrderAddReq) (*sea.FoodOrder, *sea.FoodOrderBatch, error) {
 
-	info := sea.Order{}
-	orderBatch := sea.OrderBatch{}
-	bathDIshList := []sea.OrderBatchDish{}
+	info := sea.FoodOrder{}
+	orderBatch := sea.FoodOrderBatch{}
+	bathDIshList := []sea.FoodOrderBatchDish{}
 
 	nowTime := time.Now()
 	_ = global.GVA_DB.Where("order_id = ?", req.OrderId).First(&info).Error
@@ -246,7 +246,7 @@ func (o *OrderService) OrderAdd(req request.OrderAddReq) (*sea.Order, *sea.Order
 				detailByte, _ := json.Marshal(v.ComboSubDishes)
 				detail = string(detailByte)
 			}
-			tmp2 := sea.OrderBatchDish{}
+			tmp2 := sea.FoodOrderBatchDish{}
 			tmp2.AddTime = &nowTime
 			tmp2.OrderId = info.OrderId
 			tmp2.BatchId = bathId
@@ -302,11 +302,11 @@ func (o *OrderService) OrderAdd(req request.OrderAddReq) (*sea.Order, *sea.Order
 	return &info, &orderBatch, nil
 }
 
-func (o *OrderService) orderOpen(req request.OrderAddReq, storeInfo *sea.Store, tableInfo *sea.Table) (*sea.Order, *sea.OrderBatch, error) {
+func (o *OrderService) orderOpen(req request.OrderAddReq, storeInfo *sea.Store, tableInfo *sea.Table) (*sea.FoodOrder, *sea.FoodOrderBatch, error) {
 
-	info := sea.Order{}
-	orderBatch := sea.OrderBatch{}
-	bathDIshList := []sea.OrderBatchDish{}
+	info := sea.FoodOrder{}
+	orderBatch := sea.FoodOrderBatch{}
+	bathDIshList := []sea.FoodOrderBatchDish{}
 
 	nowTime := time.Now()
 	_ = global.GVA_DB.Where("order_id = ?", req.OrderId).First(&info).Error
@@ -343,7 +343,7 @@ func (o *OrderService) orderOpen(req request.OrderAddReq, storeInfo *sea.Store, 
 		orderBatch.BatchType = 1
 
 		for _, v := range req.GoodsList {
-			tmp2 := sea.OrderBatchDish{}
+			tmp2 := sea.FoodOrderBatchDish{}
 			tmp2.AddTime = &nowTime
 			tmp2.OrderId = info.OrderId
 			tmp2.BatchId = bathId
@@ -414,12 +414,12 @@ func (o *OrderService) orderOpen(req request.OrderAddReq, storeInfo *sea.Store, 
 
 // orderId, batchId string, stallId, orderBatchDishId int
 func (o *OrderService) SkuRemove(req request.OrderSkuRemoveReq) error {
-	orderInfo := sea.Order{}
+	orderInfo := sea.FoodOrder{}
 	_ = global.GVA_DB.Where("order_id = ?", req.OrderId).First(&orderInfo).Error
 	if orderInfo.ID == 0 {
 		return errors.New("订单查询失败")
 	}
-	orderBatchDish := sea.OrderBatchDish{}
+	orderBatchDish := sea.FoodOrderBatchDish{}
 	_ = global.GVA_DB.Where("order_id = ? and batch_id = ? and id = ?", req.OrderId, req.BatchId, req, orderBatchDish).First(&orderBatchDish).Error
 	if orderBatchDish.ID == 0 {
 		return errors.New("订单查询失败")
@@ -437,7 +437,7 @@ func (o *OrderService) SkuRemove(req request.OrderSkuRemoveReq) error {
 }
 
 func (o *OrderService) SoupRemove(req request.SoupRemoveReq) error {
-	orderInfo := sea.Order{}
+	orderInfo := sea.FoodOrder{}
 	_ = global.GVA_DB.Where("order_id = ?", req.OrderId).First(&orderInfo).Error
 	if orderInfo.ID == 0 {
 		return errors.New("订单获取失败")
@@ -478,10 +478,10 @@ func (o *OrderService) SoupRemove(req request.SoupRemoveReq) error {
 	return nil
 }
 
-func (o *OrderService) List(req request.OrderListReq) ([]sea.Order, int64, error) {
-	list := []sea.Order{}
+func (o *OrderService) List(req request.OrderListReq) ([]sea.FoodOrder, int64, error) {
+	list := []sea.FoodOrder{}
 
-	orderDb := global.GVA_DB.Model(&sea.Order{})
+	orderDb := global.GVA_DB.Model(&sea.FoodOrder{})
 	if req.StoreId != "" {
 		orderDb = orderDb.Where("order_id = ?", req.StoreId)
 	}
@@ -502,9 +502,9 @@ func (o *OrderService) List(req request.OrderListReq) ([]sea.Order, int64, error
 	return list, count, err
 }
 
-func (o *OrderService) Info(orderId string) (*sea.Order, error) {
+func (o *OrderService) Info(orderId string) (*sea.FoodOrder, error) {
 
-	info := sea.Order{}
+	info := sea.FoodOrder{}
 	_ = global.GVA_DB.Where("order_id = ?", orderId).Preload("OrderBatchs.OrderBatchDishs").First(&info).Error
 	if info.ID == 0 {
 		return nil, errors.New("订单不存在,请重新输入")
@@ -514,7 +514,7 @@ func (o *OrderService) Info(orderId string) (*sea.Order, error) {
 }
 
 func (o *OrderService) Update(req request.OrderUpdateReq) error {
-	info := sea.Order{}
+	info := sea.FoodOrder{}
 
 	_ = global.GVA_DB.Where("order_id = ?", req.OrderId).First(&info).Error
 	if info.ID == 0 {
@@ -541,7 +541,7 @@ func (o *OrderService) Update(req request.OrderUpdateReq) error {
 
 // DishSkuUpdate  菜品券扣减
 func (o *OrderService) DishSkuUpdate(req request.CombWriteoffReq) error {
-	info := sea.Order{}
+	info := sea.FoodOrder{}
 
 	_ = global.GVA_DB.Where("order_id = ?", req.OrderId).First(&info).Error
 	if info.ID == 0 {
@@ -550,7 +550,7 @@ func (o *OrderService) DishSkuUpdate(req request.CombWriteoffReq) error {
 
 	// @todo
 
-	bathDishs := []sea.OrderBatchDish{}
+	bathDishs := []sea.FoodOrderBatchDish{}
 	_ = global.GVA_DB.Where("order_id = ? and sku_id = ? and num > 0", req.OrderId, "").Find(&bathDishs).Error
 
 	err := global.GVA_DB.Where("order_id = ?", req.OrderId).Save(&info).Error

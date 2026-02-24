@@ -152,7 +152,7 @@ type StallSkus struct{}
 
 // Add 添加到商品绑定明档
 func (*StallSkus) Add(orderId string) error {
-	info := sea.Order{}
+	info := sea.FoodOrder{}
 	_ = global.GVA_DB.Where("order_id = ?", orderId).Preload("OrderBatchs.OrderBatchDishs").First(&info).Error
 	if info.ID == 0 {
 		return errors.New("订单不存在,请重新输入")
@@ -215,7 +215,7 @@ func (*StallSkus) Add(orderId string) error {
 		if err == nil {
 			// 发送  增加 明档和天上屏幕
 			for _, v := range skuLists {
-				ES.SendSatll(v)
+				SendSatll(v)
 				SendToScreen(v)
 			}
 		}
@@ -223,6 +223,12 @@ func (*StallSkus) Add(orderId string) error {
 	return err
 }
 
+// SendSatll 推送明档
+func SendSatll(info sea.StallSkus) {
+	ES.SendSatll(info)
+}
+
+// SendToScreen 推送天上屏幕
 func SendToScreen(info sea.StallSkus) {
 	var stallMap = map[string]int{}
 	// 商品类型  买单 服务 锅底 加工类  饮料  1 2 3 4 5
@@ -289,7 +295,7 @@ func (*StallSkus) Del(orderId string, ids []int) error {
 
 func (*StallSkus) DelOrder(orderId string) error {
 
-	orderInfo := sea.Order{}
+	orderInfo := sea.FoodOrder{}
 	_ = global.GVA_DB.Where("order_id = ?", orderId).Preload("OrderBatchs.OrderBatchDishs").First(&orderInfo).Error
 	ids := []int{}
 	for _, v := range orderInfo.OrderBatchs {
@@ -310,7 +316,7 @@ func (*StallSkus) DelOrder(orderId string) error {
 			// 发送  删除
 			for _, v := range list {
 				v.Status = 2
-				ES.SendSatll(v)
+				SendSatll(v)
 				SendToScreen(v)
 			}
 		}

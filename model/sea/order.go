@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-type Order struct {
+type FoodOrder struct {
 	global.SeaModel
 	OrderId             string       `gorm:"column:order_id" json:"orderId"`
 	AreaId              int          `gorm:"column:area_id" json:"areaId"`
@@ -29,14 +29,14 @@ type Order struct {
 	PromoAmount         int          `gorm:"column:promo_amount" json:"promoAmount"`
 	Remark              string       `gorm:"column:remark" json:"remark"`
 	Src                 string       `gorm:"column:src" json:"src"`
-	OrderBatchs         []OrderBatch `gorm:"foreignKey:order_id;references:order_id;" json:"orderBatchs"`
+	OrderBatchs         []FoodOrderBatch `gorm:"foreignKey:order_id;references:order_id;" json:"orderBatchs"`
 }
 
-func (*Order) TableName() string {
-	return "order"
+func (*FoodOrder) TableName() string {
+	return "food_order"
 }
 
-type OrderBatch struct {
+type FoodOrderBatch struct {
 	global.SeaModel
 	StoreId         string           `gorm:"column:store_id" json:"storeId"`
 	AreaId          int              `gorm:"column:area_id" json:"areaId"`
@@ -53,14 +53,14 @@ type OrderBatch struct {
 	OperatorName    string           `gorm:"column:operator_name" json:"operatorName"`
 	Avatar          string           `gorm:"column:avatar" json:"avatar"`
 	BatchType       int              `gorm:"column:batch_type" json:"batchType"`
-	OrderBatchDishs []OrderBatchDish `gorm:"foreignKey:batch_id;references:batch_id;" json:"orderBatchDishs"`
+	OrderBatchDishs []FoodOrderBatchDish `gorm:"foreignKey:batch_id;references:batch_id;" json:"orderBatchDishs"`
 }
 
-func (*OrderBatch) TableName() string {
-	return "order_batch"
+func (*FoodOrderBatch) TableName() string {
+	return "food_order_batch"
 }
 
-type OrderBatchDish struct {
+type FoodOrderBatchDish struct {
 	global.SeaModel
 	StoreId      string     `gorm:"column:store_id" json:"storeId"`
 	AreaId       int        `gorm:"column:area_id" json:"areaId"`
@@ -86,8 +86,8 @@ type OrderBatchDish struct {
 	Deduct       int        `gorm:"column:deduct" json:"deduct"`
 }
 
-func (*OrderBatchDish) TableName() string {
-	return "order_batch_dish"
+func (*FoodOrderBatchDish) TableName() string {
+	return "food_order_batch_dish"
 }
 
 type OrderLog struct {

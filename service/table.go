@@ -90,7 +90,7 @@ func (t *TableService) ClosedDesk(req request.OpenDeskReq) error {
 		return err
 	}
 	nowTime := time.Now()
-	err = tx.Model(&sea.Order{}).Where("order_id = ?", orderId).Updates(map[string]any{
+	err = tx.Model(&sea.FoodOrder{}).Where("order_id = ?", orderId).Updates(map[string]any{
 		"open_time":     nil,
 		"close_time":    nowTime,
 		"status":        6,
@@ -503,7 +503,7 @@ func (t *TableService) ChangeDesk(req request.ChangeDeskReq) error {
 	orderId := fromTable.Business.OrderId
 	openTime := fromTable.Business.OpenTime
 
-	orderInfo := sea.Order{}
+	orderInfo := sea.FoodOrder{}
 	_ = global.GVA_DB.Where("order_id = ?", orderId).First(&orderInfo).Error
 	if orderInfo.ID == 0 {
 		return errors.New("订单信息不存在，不能换桌")
@@ -581,7 +581,7 @@ func (t *TableService) DeskJoint(req request.DeskJointReq) error {
 		return errors.New("原桌台无订单，不能合桌")
 	}
 
-	fromOrder := sea.Order{}
+	fromOrder := sea.FoodOrder{}
 	_ = global.GVA_DB.Where("order_id = ?", fromTable.Business.OrderId).Preload("OrderBatchs.OrderBatchDishs").First(&fromOrder).Error
 	if fromOrder.ID == 0 {
 		return errors.New("原桌台订单不存在")
@@ -595,7 +595,7 @@ func (t *TableService) DeskJoint(req request.DeskJointReq) error {
 	if toTable.Business.OrderId == "" {
 		return errors.New("目标桌台无订单，不能合桌")
 	}
-	toOrder := sea.Order{}
+	toOrder := sea.FoodOrder{}
 	_ = global.GVA_DB.Where("order_id = ?", toTable.Business.OrderId).First(&toOrder).Error
 	if toOrder.ID == 0 {
 		return errors.New("目标桌台订单不存在")
@@ -613,8 +613,8 @@ func (t *TableService) DeskJoint(req request.DeskJointReq) error {
 	fromOrder.CloseTime = &nowTime
 
 	// 增加订单批次处理
-	addBatch := []sea.OrderBatch{}
-	addBatchDish := []sea.OrderBatchDish{}
+	addBatch := []sea.FoodOrderBatch{}
+	addBatchDish := []sea.FoodOrderBatchDish{}
 	for _, v := range fromOrder.OrderBatchs {
 		if v.BatchType == 1 { // 普通商品批次
 			if v.OrderBatchDishs != nil && len(v.OrderBatchDishs) > 0 {

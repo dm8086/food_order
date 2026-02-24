@@ -62,20 +62,6 @@ func PubToEmqx(topics map[string]byte, msg string) error {
 	return nil
 }
 
-func (e *EmqxService) SendToTopScreen(topic string, info response.TopScreenResp) error {
-
-	msg, _ := json.Marshal(info)
-	// 构建成和之前一样的数据就可以实现通用
-	token := global.GVA_EMQX.Publish(topic, 1, true, msg)
-	token.Wait()
-	if token.Error() != nil {
-		go addLog(topic, string(msg), "Pub", 1)
-		return token.Error()
-	}
-
-	return nil
-}
-
 func (e *EmqxService) SendToTopScreenBase(tableId int, req ServiceSettle) error {
 
 	tableInfo := sea.Table{}
@@ -149,7 +135,71 @@ func (e *EmqxService) OrderSendSatll(orderId string, ids []int) error {
 	return nil
 }
 
-// ActionEvent  针对事件的处理  下发数据
+// SendToTopScreen  推送到天上屏幕
+func (e *EmqxService) SendToTopScreen(topic string, info response.TopScreenResp) error {
+
+	msg, _ := json.Marshal(info)
+	// 构建成和之前一样的数据就可以实现通用
+	token := global.GVA_EMQX.Publish(topic, 1, true, msg)
+	token.Wait()
+	if token.Error() != nil {
+		go addLog(topic, string(msg), "Pub", 1)
+		return token.Error()
+	}
+
+	return nil
+}
+
+// SendToTopScreen  推送到天上屏幕
+func (e *EmqxService) SendToTopScreenV2(req ServiceSettle, tableInfo sea.Table) error {
+
+	topic := fmt.Sprintf("storeId/%s:areaId/%d", tableInfo.StoreId, tableInfo.AreaId)
+	nowTime := time.Now()
+	shopType := req.ServType
+	status := req.Status
+
+	tableEvent := ""
+	if req.ServType == 1 {
+		if req.Status == 1 {
+			tableEvent = tableInfo.Name + "请求服务"
+		}
+		if req.Status == 2 {
+			tableEvent = tableInfo.Name + "取消服务"
+		}
+	}
+	if req.ServType == 2 {
+		if req.Status == 1 {
+			tableEvent = tableInfo.Name + "请求买单"
+		}
+		if req.Status == 2 {
+			tableEvent = tableInfo.Name + "取消买单"
+		}
+	}
+
+	info := resp.TopScreenResp{}
+	info.TableId = int(tableInfo.ID)
+	info.TableName = tableInfo.Name
+	info.Status = status
+	info.TableEvent = tableEvent
+	info.ShopList = nil
+	info.ShopType = shopType
+	info.EventName = "topScreenStatus"
+	info.EventTime = nowTime.Local().Format("2006-01-02 15:04:05")
+	info.StoreId = tableInfo.StoreId
+
+	msg, _ := json.Marshal(info)
+	// 构建成和之前一样的数据就可以实现通用
+	token := global.GVA_EMQX.Publish(topic, 1, true, msg)
+	token.Wait()
+	if token.Error() != nil {
+		go addLog(topic, string(msg), "Pub", 1)
+		return token.Error()
+	}
+
+	return nil
+}
+
+// SendSatll  推送到明档
 func (e *EmqxService) SendSatll(info sea.StallSkus) error {
 	topic := fmt.Sprintf("storeId/%s:areaId/%d/stallId/%d", info.StoreId, info.AreaId, info.StallId)
 
@@ -164,6 +214,7 @@ func (e *EmqxService) SendSatll(info sea.StallSkus) error {
 	return nil
 }
 
+// SendDesk   推送到桌面
 func (e *EmqxService) SendDesk(tableId int, eventName string) error {
 	tableInfo := sea.Table{}
 	_ = global.GVA_DB.Where("id = ?", tableId).Preload("Business").First(&tableInfo).Error
@@ -194,7 +245,7 @@ func (e *EmqxService) SendDesk(tableId int, eventName string) error {
 		peopleCount := 0
 		if tableBusiness.OrderId != "" {
 			orderId = tableBusiness.OrderId
-			orderInfo := sea.Order{}
+			orderInfo := sea.FoodOrder{}
 			_ = global.GVA_DB.Where("order_id = ?", orderId).First(&orderInfo).Error
 			memberId = orderInfo.MemberId
 			if orderInfo.Mobile != "" && len(orderInfo.Mobile) == 11 {
@@ -347,7 +398,7 @@ func (e *EmqxService) SendOrder(orderId, storeId, orderType string, orderStatus 
 	data["orderId"] = orderId
 	data["storeId"] = storeId
 	data["status"] = orderStatus
-	data["type"] = "orderType"
+	data["type"] = orderType
 	msg, _ := json.Marshal(data)
 	global.GVA_EMQX.Publish(topic, 1, true, msg) // qos 1 保证送达
 	return nil
@@ -442,6 +493,7 @@ func storeServiceSettleHandler(msg []byte) error {
 	info.StoreId = tableInfo.StoreId
 
 	emqxService.SendToTopScreen(topic, info)
+	// emqxService.SendToTopScreenV2(req, tableInfo)
 	return nil
 }
 

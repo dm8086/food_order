@@ -16,7 +16,6 @@ var BS = ButtonService{}
 type ButtonService struct{}
 
 func (*ButtonService) Click(req request.ButtonServiceReq) error {
-
 	tableInfo := &sea.Table{}
 	_ = global.GVA_DB.Where("id = ?", req.TableId).Preload("Business").First(&tableInfo).Error
 	if tableInfo.ID == 0 {
@@ -185,7 +184,7 @@ func cancelHandler(req request.ButtonServiceReq, table *sea.Table, business *sea
 	tx.Commit()
 
 	// @todo 增加推送到对应的emqx
-	buttonServiceSendEmqx(*table, business.BusinessStatus, 6)
+	buttonServiceSendEmqx(*table, business.BusinessStatus, 13)
 	return nil
 }
 
@@ -250,7 +249,7 @@ func singleHandler(req request.ButtonServiceReq, table *sea.Table, business *sea
 		return err
 	}
 	tx.Commit()
-	buttonServiceSendEmqx(*table, business.BusinessStatus, 6)
+	buttonServiceSendEmqx(*table, business.BusinessStatus, 4)
 	return nil
 }
 
@@ -261,9 +260,12 @@ func doubleHandler(req request.ButtonServiceReq, table *sea.Table, business *sea
 }
 
 // buttonServiceSendEmqx 按钮服务丢到emqx
-func buttonServiceSendEmqx(tableInfo sea.Table, businessStatus, shopType int) {
+func buttonServiceSendEmqx(tableInfo sea.Table, businessStatus, eventType int) {
+	sendTopScreenEmqx(tableInfo, businessStatus, eventType)
+}
 
-	// todo 设置topic 和内容
+// sendTopScreenEmqx 往天上屏幕上发送
+func sendTopScreenEmqx(tableInfo sea.Table, businessStatus, eventType int) {
 
 	topic := fmt.Sprintf("storeId/%s:areaId/%d", tableInfo.StoreId, tableInfo.AreaId)
 
@@ -273,7 +275,8 @@ func buttonServiceSendEmqx(tableInfo sea.Table, businessStatus, shopType int) {
 	msg.Status = businessStatus
 	msg.TableEvent = "按钮推送天上屏幕"
 	msg.ShopList = nil
-	msg.ShopType = shopType
+	msg.ShopType = 0
+	msg.EventType = eventType
 	msg.EventName = "topScreenStatus"
 	msg.EventTime = time.Now().Local().Format("2006-01-02 15:04:05")
 	msg.StoreId = tableInfo.StoreId
